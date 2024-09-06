@@ -3,6 +3,11 @@ variable "s3_bucket_name" {
   type        = string
   default     = ""  # Default to empty if not provided
 }
+variable "custom_certificate_arn" {
+  description = "The ARN of the custom SSL/TLS certificate for CloudFront"
+  type        = string
+  default     = ""
+}
 
 variable "cache_policy_type" {
   type    = string
