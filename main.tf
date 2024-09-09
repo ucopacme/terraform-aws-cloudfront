@@ -44,6 +44,7 @@ resource "aws_cloudfront_distribution" "s3" {
   count               = var.origin_type == "s3" ? 1 : 0
   enabled             = true
   default_root_object = var.default_root_object
+  tags                = var.tags
 
   origin {
     domain_name = aws_s3_bucket.this[0].bucket_regional_domain_name
