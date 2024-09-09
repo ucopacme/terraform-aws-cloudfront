@@ -1,10 +1,11 @@
-
+# Create an S3 bucket if the origin_type is set to "s3"
 resource "aws_s3_bucket" "this" {
   count  = var.origin_type == "s3" ? 1 : 0
   bucket = var.s3_bucket_name
   tags   = var.tags
 }
 
+# Define a bucket policy for the S3 bucket if the origin_type is "s3"
 resource "aws_s3_bucket_policy" "this" {
   count  = var.origin_type == "s3" ? 1 : 0
   bucket = aws_s3_bucket.this[0].id
@@ -29,8 +30,10 @@ resource "aws_s3_bucket_policy" "this" {
   })
 }
 
+# Fetch the current AWS account ID
 data "aws_caller_identity" "current" {}
 
+# Create a CloudFront Origin Access Control (OAC) for the S3 bucket if the origin_type is "s3"
 resource "aws_cloudfront_origin_access_control" "this" {
   count                            = var.origin_type == "s3" ? 1 : 0
   name                             = "${var.s3_bucket_name}-oac"
@@ -40,6 +43,7 @@ resource "aws_cloudfront_origin_access_control" "this" {
   signing_protocol                 = "sigv4"
 }
 
+# Create a CloudFront distribution for the S3 origin if the origin_type is "s3"
 resource "aws_cloudfront_distribution" "s3" {
   count               = var.origin_type == "s3" ? 1 : 0
   enabled             = true
@@ -76,6 +80,7 @@ resource "aws_cloudfront_distribution" "s3" {
     }
   }
 
+  # Dynamically create custom error responses if specified
   dynamic "custom_error_response" {
     for_each = var.error_pages != null ? var.error_pages : {}
     content {
@@ -87,6 +92,7 @@ resource "aws_cloudfront_distribution" "s3" {
   }
 }
 
+# Create a CloudFront distribution for the ALB origin if the origin_type is not "s3"
 resource "aws_cloudfront_distribution" "alb" {
   count               = var.origin_type != "s3" ? 1 : 0
   enabled             = true
@@ -126,6 +132,7 @@ resource "aws_cloudfront_distribution" "alb" {
     }
   }
 
+  # Dynamically create custom error responses if specified
   dynamic "custom_error_response" {
     for_each = var.error_pages != null ? var.error_pages : {}
     content {
