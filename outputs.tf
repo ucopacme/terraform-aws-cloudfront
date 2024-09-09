@@ -16,3 +16,14 @@ output "cloudfront_alb_domain_name" {
   value       = var.origin_type != "s3" && length(aws_cloudfront_distribution.alb) > 0 ? aws_cloudfront_distribution.alb[0].domain_name : null
   description = "The domain name of the CloudFront distribution for ALB"
 }
+
+# Output for CloudFront distribution ID
+output "cloudfront_distribution_zone_id" {
+  value = var.origin_type == "s3" ? aws_cloudfront_distribution.s3[0].id : aws_cloudfront_distribution.alb[0].id
+  description = "The CloudFront distribution ID"
+}
+
+#output "cloudfront_distribution_zone_id" {
+ # value = aws_cloudfront_distribution.s3[0].id
+  #description = "The CloudFront distribution ID"
+#}

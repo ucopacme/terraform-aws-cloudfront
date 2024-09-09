@@ -54,17 +54,17 @@ resource "aws_cloudfront_distribution" "s3" {
   default_cache_behavior {
     target_origin_id       = "S3-${aws_s3_bucket.this[0].bucket}"
     viewer_protocol_policy = "redirect-to-https"
-    compress               = true
+    compress               = var.compress
     cache_policy_id        = local.cache_policy_id
-    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
-    cached_methods         = ["GET", "HEAD"]
+    allowed_methods        = var.allowed_methods
+    cached_methods         = var.cached_methods
   }
 
   viewer_certificate {
     acm_certificate_arn            = var.acm_certificate_arn != "" ? var.acm_certificate_arn : null
     cloudfront_default_certificate = var.acm_certificate_arn == "" ? true : false
     ssl_support_method             = var.acm_certificate_arn != "" ? "sni-only" : null
-    minimum_protocol_version       = "TLSv1.2_2021"
+    minimum_protocol_version       = var.minimum_protocol_version
   }
 
   restrictions {
@@ -106,15 +106,15 @@ resource "aws_cloudfront_distribution" "alb" {
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
     cache_policy_id        = local.cache_policy_id
-    allowed_methods        = ["GET", "HEAD"]
-    cached_methods         = ["GET", "HEAD"]
+    allowed_methods        = var.allowed_methods
+    cached_methods         = var.cached_methods
   }
 
   viewer_certificate {
     acm_certificate_arn            = var.acm_certificate_arn != "" ? var.acm_certificate_arn : null
     cloudfront_default_certificate = var.acm_certificate_arn == "" ? true : false
     ssl_support_method             = var.acm_certificate_arn != "" ? "sni-only" : null
-    minimum_protocol_version       = "TLSv1.2_2021"
+    minimum_protocol_version       = var.minimum_protocol_version
   }
 
   restrictions {

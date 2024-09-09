@@ -3,15 +3,42 @@ variable "s3_bucket_name" {
   type        = string
   default     = ""  # Default to empty if not provided
 }
-variable "custom_certificate_arn" {
+variable "minimum_protocol_version" {
+  description = "TLS for CloudFront"
+  type        = string
+  default     = "TLSv1.2_2021"
+}
+
+variable "acm_certificate_arn" {
   description = "The ARN of the custom SSL/TLS certificate for CloudFront"
   type        = string
   default     = ""
 }
 
+variable "allowed_methods" {
+  description = "Allowed HTTP methods for CloudFront"
+  type        = list(string)
+  default     = ["GET", "HEAD"]
+}
+variable "compress" {
+  description = "Enable or disable compress"
+  type        = bool
+  default     = true
+}
+variable "alternate_domain_names" {
+  description = "List of alternate domain names (CNAMEs)"
+  type        = list(string)
+  default     = []
+}
+
 variable "cache_policy_type" {
   type    = string
   default = "cache-optimized" # Options can be "cache-optimized" or "caching-disabled"
+}
+variable "cached_methods" {
+  description = "Cached HTTP methods for CloudFront"
+  type        = list(string)
+  default     = ["GET", "HEAD"]
 }
 
 variable "alb_origin_id" {
@@ -53,5 +80,3 @@ variable "error_pages" {
   }))
   default = null
 }
-
-
