@@ -56,6 +56,8 @@ resource "aws_cloudfront_distribution" "s3" {
     origin_access_control_id = aws_cloudfront_origin_access_control.this[0].id
   }
 
+  price_class = var.price_class
+
   default_cache_behavior {
     target_origin_id       = "S3-${aws_s3_bucket.this[0].bucket}"
     viewer_protocol_policy = "redirect-to-https"
@@ -109,6 +111,8 @@ resource "aws_cloudfront_distribution" "alb" {
       origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
     }
   }
+
+  price_class = var.price_class
 
   default_cache_behavior {
     target_origin_id       = "ALB-${var.alb_arn}"

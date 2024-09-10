@@ -3,6 +3,7 @@ variable "s3_bucket_name" {
   type        = string
   default     = ""  # Default to empty if not provided
 }
+
 variable "minimum_protocol_version" {
   description = "TLS for CloudFront"
   type        = string
@@ -20,11 +21,13 @@ variable "allowed_methods" {
   type        = list(string)
   default     = ["GET", "HEAD"]
 }
+
 variable "compress" {
   description = "Enable or disable compress"
   type        = bool
   default     = true
 }
+
 variable "alternate_domain_names" {
   description = "List of alternate domain names (CNAMEs)"
   type        = list(string)
@@ -35,6 +38,7 @@ variable "cache_policy_type" {
   type    = string
   default = "cache-optimized" # Options can be "cache-optimized" or "caching-disabled"
 }
+
 variable "cached_methods" {
   description = "Cached HTTP methods for CloudFront"
   type        = list(string)
@@ -57,6 +61,12 @@ variable "origin_type" {
   description = "The type of the origin (s3 or alb)"
   type        = string
   default     = "s3"
+}
+
+variable "price_class" {
+  description = "Price class for this distribution"
+  type        = string
+  default     = "PriceClass_100"
 }
 
 variable "default_root_object" {
