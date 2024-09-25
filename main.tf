@@ -65,9 +65,9 @@ resource "aws_cloudfront_distribution" "s3" {
     cache_policy_id        = local.cache_policy_id
     allowed_methods        = var.allowed_methods
     cached_methods         = var.cached_methods
-    # Conditionally include the function association
+    # Conditionally add the function_association if function_arn is provided
     dynamic "function_association" {
-      for_each = var.function_arn != "" ? [var.function_arn] : []
+      for_each = var.function_arn != null && var.function_arn != "" ? [var.function_arn] : []
       content {
         event_type   = "viewer-request"
         function_arn = function_association.value
