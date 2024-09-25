@@ -67,6 +67,11 @@ resource "aws_cloudfront_distribution" "s3" {
     cached_methods         = var.cached_methods
   }
 
+ function_association {
+      event_type   = "viewer-request"
+      function_arn = var.function_arn
+    }
+
   aliases = var.alternate_domain_names
 
   viewer_certificate {
