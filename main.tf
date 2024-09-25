@@ -65,12 +65,13 @@ resource "aws_cloudfront_distribution" "s3" {
     cache_policy_id        = local.cache_policy_id
     allowed_methods        = var.allowed_methods
     cached_methods         = var.cached_methods
-  }
-
- function_association {
+    function_association {
       event_type   = "viewer-request"
       function_arn = var.function_arn
     }
+  }
+
+ 
 
   aliases = var.alternate_domain_names
 
