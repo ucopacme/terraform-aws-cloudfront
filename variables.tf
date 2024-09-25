@@ -4,6 +4,11 @@ variable "s3_bucket_name" {
   default     = ""  # Default to empty if not provided
 }
 
+variable "function_arn" {
+  description = "function_arn"
+  type        = string
+  default     = null  # Default to empty if not provided
+}
 variable "minimum_protocol_version" {
   description = "TLS for CloudFront"
   type        = string
