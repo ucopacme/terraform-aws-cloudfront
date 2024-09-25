@@ -65,7 +65,7 @@ resource "aws_cloudfront_distribution" "s3" {
     cache_policy_id        = local.cache_policy_id
     allowed_methods        = var.allowed_methods
     cached_methods         = var.cached_methods
-     # Dynamically create function association if function_arn is provided
+    # Conditionally include the function association
     dynamic "function_association" {
       for_each = var.function_arn != "" ? [var.function_arn] : []
       content {
