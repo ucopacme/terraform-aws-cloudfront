@@ -75,8 +75,6 @@ resource "aws_cloudfront_distribution" "s3" {
     }
   }
 
- 
-
   aliases = var.alternate_domain_names
 
   viewer_certificate {
@@ -87,8 +85,19 @@ resource "aws_cloudfront_distribution" "s3" {
   }
 
   restrictions {
-    geo_restriction {
-      restriction_type = "none"
+    dynamic "geo_restriction" {
+      for_each = length(var.geo_restrictions_whitelist) > 0 ? [var.geo_restrictions_whitelist[0]] : []
+      content {
+        restriction_type = "whitelist"
+        locations        = var.geo_restrictions_whitelist
+      }
+    }
+
+    dynamic "geo_restriction" {
+      for_each = length(var.geo_restrictions_whitelist) == 0 ? ["none"] : []
+      content {
+        restriction_type = "none"
+      }
     }
   }
 

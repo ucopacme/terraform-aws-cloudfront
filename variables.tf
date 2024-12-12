@@ -80,6 +80,12 @@ variable "default_root_object" {
   default     = "index.html"
 }
 
+variable "geo_restrictions_whitelist" {
+  description = "List of country codes to whitelist"
+  type        = list(string)
+  default     = []
+}
+
 variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)
