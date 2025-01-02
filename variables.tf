@@ -9,6 +9,19 @@ variable "function_arn" {
   type        = string
   default     = null  # Default to empty if not provided
 }
+
+variable "cloudfront_function_arns" {
+  description = "List of CloudFront Function ARNs to associate"
+  type        = list(string)
+  default     = []
+}
+
+variable "lambda_function_arns" {
+  description = "List of Lambda@Edge ARNs to associate"
+  type        = list(string)
+  default     = []
+}
+
 variable "minimum_protocol_version" {
   description = "TLS for CloudFront"
   type        = string
