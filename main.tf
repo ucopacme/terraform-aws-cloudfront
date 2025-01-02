@@ -66,13 +66,24 @@ resource "aws_cloudfront_distribution" "s3" {
     allowed_methods        = var.allowed_methods
     cached_methods         = var.cached_methods
     # Conditionally add the function_association if function_arn is provided
-    dynamic "function_association" {
-      for_each = var.function_arn != null && var.function_arn != "" ? [var.function_arn] : []
-      content {
-        event_type   = "viewer-request"
-        function_arn = function_association.value
-      }
+    # Dynamic block for CloudFront Functions
+  dynamic "function_association" {
+    for_each = var.cloudfront_function_arns != null && length(var.cloudfront_function_arns) > 0 ? var.cloudfront_function_arns : []
+    content {
+      event_type   = "viewer-request"
+      function_arn = function_association.value
     }
+  }
+
+  # Dynamic block for Lambda@Edge Functions
+  dynamic "lambda_function_association" {
+    for_each = var.lambda_function_arns != null && length(var.lambda_function_arns) > 0 ? var.lambda_function_arns : []
+    content {
+      event_type = "viewer-request"
+      lambda_arn = lambda_function_association.value
+    }
+  }
+
   }
 
   aliases = var.alternate_domain_names
