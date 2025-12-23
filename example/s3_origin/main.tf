@@ -8,6 +8,8 @@ module "cloudfront" {
   source                 = "git::https://git@github.com/ucopacme/terraform-aws-cloudfront.git"
   origin_type            = "s3"
   s3_bucket_name         = join("-", [local.environment, "app", "cdn", local.account_id, "us-west-2"])
+  #create_s3_bucket       = false # Set to false to use an existing S3 bucket as the origin
+  #existing_s3_bucket_name = # Specify the name of an existing S3 bucket to use as the origin
   cache_policy_type      = local.cache_policy_type
   compress               = local.compress
   acm_certificate_arn    = local.acm_certificate_arn # Leave empty or not provide if origin_type is "s3"
