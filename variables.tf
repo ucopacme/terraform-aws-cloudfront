@@ -114,3 +114,15 @@ variable "error_pages" {
   }))
   default = null
 }
+
+variable "create_s3_bucket" {
+  description = "Set to true to create a new S3 bucket, false to use existing"
+  type        = bool
+  default     = true
+}
+
+variable "existing_s3_bucket_name" {
+  description = "The name of an existing S3 bucket to use as the CloudFront origin"
+  type        = string
+  default     = null
+}

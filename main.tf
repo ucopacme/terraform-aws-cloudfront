@@ -1,13 +1,28 @@
 # Create an S3 bucket if the origin_type is set to "s3"
+# Create bucket ONLY if origin is s3 AND create_s3_bucket is true
 resource "aws_s3_bucket" "this" {
-  count  = var.origin_type == "s3" ? 1 : 0
+  count  = (var.origin_type == "s3" && var.create_s3_bucket) ? 1 : 0
   bucket = var.s3_bucket_name
   tags   = var.tags
 }
 
-# Define a bucket policy for the S3 bucket if the origin_type is "s3"
+# Fetch existing bucket details if we aren't creating one
+# main.tf inside the module
+data "aws_s3_bucket" "existing" {
+  # Only run if origin is S3 AND the variable is actually a non-empty string
+  count  = (var.origin_type == "s3" && var.existing_s3_bucket_name != null && var.existing_s3_bucket_name != "") ? 1 : 0
+  bucket = var.existing_s3_bucket_name
+}
+
+locals {
+  # Normalize bucket info so we can reference one variable throughout the rest of the code
+  bucket_id          = var.create_s3_bucket ? try(aws_s3_bucket.this[0].id, "") : try(data.aws_s3_bucket.existing[0].id, "")
+  bucket_domain_name = var.create_s3_bucket ? try(aws_s3_bucket.this[0].bucket_regional_domain_name, "") : try(data.aws_s3_bucket.existing[0].bucket_regional_domain_name, "")
+}
+
+# The policy will now ONLY be created if a NEW bucket is being created
 resource "aws_s3_bucket_policy" "this" {
-  count  = var.origin_type == "s3" ? 1 : 0
+  count  = (var.origin_type == "s3" && var.create_s3_bucket) ? 1 : 0
   bucket = aws_s3_bucket.this[0].id
 
   policy = jsonencode({
@@ -15,10 +30,8 @@ resource "aws_s3_bucket_policy" "this" {
     Statement = [
       {
         Effect = "Allow"
-        Principal = {
-          Service = "cloudfront.amazonaws.com"
-        }
-        Action = "s3:GetObject"
+        Principal = { Service = "cloudfront.amazonaws.com" }
+        Action   = "s3:GetObject"
         Resource = "arn:aws:s3:::${aws_s3_bucket.this[0].id}/*"
         Condition = {
           StringEquals = {
@@ -51,15 +64,15 @@ resource "aws_cloudfront_distribution" "s3" {
   tags                = var.tags
 
   origin {
-    domain_name = aws_s3_bucket.this[0].bucket_regional_domain_name
-    origin_id   = "S3-${aws_s3_bucket.this[0].bucket}"
+    domain_name = local.bucket_domain_name
+    origin_id   = "S3-${local.bucket_id}"
     origin_access_control_id = aws_cloudfront_origin_access_control.this[0].id
   }
 
   price_class = var.price_class
 
   default_cache_behavior {
-    target_origin_id       = "S3-${aws_s3_bucket.this[0].bucket}"
+    target_origin_id       = "S3-${local.bucket_id}"
     viewer_protocol_policy = "redirect-to-https"
     compress               = var.compress
     cache_policy_id        = local.cache_policy_id
