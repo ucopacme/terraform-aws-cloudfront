@@ -49,7 +49,7 @@ data "aws_caller_identity" "current" {}
 # Create a CloudFront Origin Access Control (OAC) for the S3 bucket if the origin_type is "s3"
 resource "aws_cloudfront_origin_access_control" "this" {
   count                            = var.origin_type == "s3" ? 1 : 0
-  name                             = "${var.s3_bucket_name}-oac"
+  name                             = "${var.s3_bucket_name}${var.existing_s3_bucket_name}-oac"
   description                      = "OAC for S3 bucket ${var.s3_bucket_name}"
   origin_access_control_origin_type = "s3"
   signing_behavior                 = "always"
