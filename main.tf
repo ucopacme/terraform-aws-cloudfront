@@ -38,8 +38,24 @@ resource "aws_s3_bucket_policy" "this" {
             "AWS:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.s3[0].id}"
           }
         }
-      }
-    ]
+      },
+      {
+            "Sid": "AllowSSLRequestsOnly",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": "s3:*",
+            "Resource": [
+                "arn:aws:s3:::${aws_s3_bucket.this[0].id}/*",
+                "arn:aws:s3:::${aws_s3_bucket.this[0].id}"
+            ],
+            "Condition": {
+                "Bool": {
+                    "aws:SecureTransport": "false"
+                }
+            }
+        },
+    ],
+    
   })
 }
 

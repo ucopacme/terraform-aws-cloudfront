@@ -124,5 +124,5 @@ variable "create_s3_bucket" {
 variable "existing_s3_bucket_name" {
   description = "The name of an existing S3 bucket to use as the CloudFront origin"
   type        = string
-  default     = null
+  default     = ""
 }
