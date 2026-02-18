@@ -78,7 +78,7 @@ resource "aws_cloudfront_distribution" "s3" {
   enabled             = true
   default_root_object = var.default_root_object
   tags                = var.tags
-
+  comment             = var.cloudfront_comment
   origin {
     domain_name = local.bucket_domain_name
     origin_id   = "S3-${local.bucket_id}"
@@ -94,6 +94,8 @@ resource "aws_cloudfront_distribution" "s3" {
     cache_policy_id        = local.cache_policy_id
     allowed_methods        = var.allowed_methods
     cached_methods         = var.cached_methods
+    response_headers_policy_id = var.response_headers_policy_id
+
     # Conditionally add the function_association if function_arn is provided
     # Dynamic block for CloudFront Functions
   dynamic "function_association" {
@@ -158,6 +160,7 @@ resource "aws_cloudfront_distribution" "alb" {
   count               = var.origin_type != "s3" ? 1 : 0
   enabled             = true
   default_root_object = var.default_root_object
+  comment             = var.cloudfront_comment
 
   origin {
     domain_name = var.alb_arn
@@ -180,6 +183,7 @@ resource "aws_cloudfront_distribution" "alb" {
     cache_policy_id        = local.cache_policy_id
     allowed_methods        = var.allowed_methods
     cached_methods         = var.cached_methods
+    response_headers_policy_id = var.response_headers_policy_id
     # Conditionally add the function_association if function_arn is provided
     dynamic "function_association" {
       for_each = var.function_arn != null && var.function_arn != "" ? [var.function_arn] : []

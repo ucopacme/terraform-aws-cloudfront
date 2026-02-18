@@ -126,3 +126,30 @@ variable "existing_s3_bucket_name" {
   type        = string
   default     = ""
 }
+
+
+variable "enable_csp" {
+  description = "Enable Content Security Policy via CloudFront Response Headers Policy"
+  type        = bool
+  default     = false
+}
+
+variable "csp_policy" {
+  description = "Content Security Policy string"
+  type        = string
+  default     = "default-src 'self';"
+}
+
+
+variable "response_headers_policy_id" {
+  description = "Existing CloudFront Response Headers Policy ID"
+  type        = string
+  default     = null
+}
+
+
+variable "cloudfront_comment" {
+  description = "Comment/description for the CloudFront distribution"
+  type        = string
+  default     = "Managed by Terraform"
+}
