@@ -163,8 +163,8 @@ resource "aws_cloudfront_distribution" "alb" {
   comment             = var.cloudfront_comment
 
   origin {
-    domain_name = var.alb_arn
-    origin_id   = "ALB-${var.alb_arn}"
+    domain_name = var.alb_domain_name
+    origin_id   = var.alb_origin_id != "" ? var.alb_origin_id : var.alb_domain_name
 
     custom_origin_config {
       http_port              = 80
@@ -177,7 +177,7 @@ resource "aws_cloudfront_distribution" "alb" {
   price_class = var.price_class
 
   default_cache_behavior {
-    target_origin_id       = "ALB-${var.alb_arn}"
+    target_origin_id       = var.alb_origin_id != "" ? var.alb_origin_id : var.alb_domain_name
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
     cache_policy_id        = local.cache_policy_id

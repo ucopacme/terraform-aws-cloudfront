@@ -69,7 +69,7 @@ variable "alb_origin_id" {
   default     = ""
 }
 
-variable "alb_arn" {
+variable "alb_domain_name" {
   description = "The ARN of the Application Load Balancer."
   type        = string
   default     = ""
