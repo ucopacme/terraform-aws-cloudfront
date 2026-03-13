@@ -187,6 +187,7 @@ resource "aws_cloudfront_distribution" "alb" {
     cache_policy_id        = local.cache_policy_id
     allowed_methods        = var.allowed_methods
     cached_methods         = var.cached_methods
+    origin_request_policy_id = var.origin_request_policy_id
     response_headers_policy_id = var.response_headers_policy_id
     # Conditionally add the function_association if function_arn is provided
     dynamic "function_association" {

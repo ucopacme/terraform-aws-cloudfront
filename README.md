@@ -30,8 +30,9 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_acm_certificate_arn"></a> [acm\_certificate\_arn](#input\_acm\_certificate\_arn) | The ARN of the custom SSL/TLS certificate for CloudFront | `string` | `""` | no |
-| <a name="input_alb_arn"></a> [alb\_arn](#input\_alb\_arn) | The ARN of the Application Load Balancer. | `string` | `""` | no |
-| <a name="input_alb_origin_id"></a> [alb\_origin\_id](#input\_alb\_origin\_id) | The origin ID for the ALB | `string` | `""` | no |
+| <a name="input_alb_domain_name"></a> [alb\_domain_name](#input\_alb\_domain_name) | The AWS DNS name of the Application Load Balancer. | `string` | `""` | no |
+| <a name="input_alb_origin_id"></a> [alb\_origin\_id](#input\_alb\_origin\_id) | The origin ID for the ALB, a string for the name in CF, not an ID | `string` | `""` | no |
+| <a name="input_alb_origin_protocol_policy"></a> [alb\_origin\_protocol\_policy](#input\_alb\_origin\_protocol\_policy) | One of https-only, http-only or match-viewer | `string` | `""` | no |
 | <a name="input_allowed_methods"></a> [allowed\_methods](#input\_allowed\_methods) | Allowed HTTP methods for CloudFront | `list(string)` | <pre>[<br>  "GET",<br>  "HEAD"<br>]</pre> | no |
 | <a name="input_alternate_domain_names"></a> [alternate\_domain\_names](#input\_alternate\_domain\_names) | List of alternate domain names (CNAMEs) | `list(string)` | `[]` | no |
 | <a name="input_cache_policy_type"></a> [cache\_policy\_type](#input\_cache\_policy\_type) | n/a | `string` | `"cache-optimized"` | no |
@@ -40,9 +41,13 @@ No modules.
 | <a name="input_default_root_object"></a> [default\_root\_object](#input\_default\_root\_object) | The default root object for CloudFront | `string` | `"index.html"` | no |
 | <a name="input_error_pages"></a> [error\_pages](#input\_error\_pages) | Map of error codes to custom error response settings | <pre>map(object({<br>    response_page_path    = string<br>    response_code         = number<br>    error_caching_min_ttl = number<br>  }))</pre> | `null` | no |
 | <a name="input_minimum_protocol_version"></a> [minimum\_protocol\_version](#input\_minimum\_protocol\_version) | TLS for CloudFront | `string` | `"TLSv1.2_2021"` | no |
+origin_request_policy_id
+| <a name="input_origin_request_policy_id"></a> [origin\_request\_policy\_id](#input\_origin\_request\_policy\_id) | The origin request policy; common for formard all viewer headers, etc. | `string` | `null` | no |
 | <a name="input_origin_type"></a> [origin\_type](#input\_origin\_type) | The type of the origin (s3 or alb) | `string` | `"s3"` | no |
 | <a name="input_s3_bucket_name"></a> [s3\_bucket\_name](#input\_s3\_bucket\_name) | The name of the S3 bucket (optional if using ALB as origin) | `string` | `""` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to resources | `map(string)` | `{}` | no |
+
+
 
 ## Outputs
 
