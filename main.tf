@@ -174,7 +174,7 @@ resource "aws_cloudfront_distribution" "alb" {
       // backwards compatibility is needed, to keep the setting as is for older deploys
       // set default and this if not set to http-only, but have been setting https-only 
       // in ucop cf+alb deploys recently 
-      origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
+      origin_ssl_protocols   = ["TLSv1.2"]
     }
   }
 
