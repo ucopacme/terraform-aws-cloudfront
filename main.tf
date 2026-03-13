@@ -169,7 +169,11 @@ resource "aws_cloudfront_distribution" "alb" {
     custom_origin_config {
       http_port              = 80
       https_port             = 443
-      origin_protocol_policy = "http-only"
+      origin_protocol_policy = var.alb_origin_protocol_policy != "" ? var.alb_origin_protocol_policy : "http-only"
+      // should be match viewer or https-only but was hardcoded to http-only, so in case 
+      // backwards compatibility is needed, to keep the setting as is for older deploys
+      // set default and this if not set to http-only, but have been setting https-only 
+      // in ucop cf+alb deploys recently 
       origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
     }
   }

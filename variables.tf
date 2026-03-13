@@ -75,6 +75,16 @@ variable "alb_domain_name" {
   default     = ""
 }
 
+variable "alb_origin_protocol_policy" {
+  description = "The origin protocol policy for the ALB"
+  type        = string
+  default     = "http-only"
+      // should be match viewer or https-only but was hardcoded to http-only, so in case 
+      // backwards compatibility is needed, to keep the setting as is for older deploys
+      // set default and this if not set to http-only, but have been setting https-only 
+      // in ucop cf+alb deploys recently 
+}
+
 variable "origin_type" {
   description = "The type of the origin (s3 or alb)"
   type        = string
