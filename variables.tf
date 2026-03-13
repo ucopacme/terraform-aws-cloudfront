@@ -70,7 +70,7 @@ variable "alb_origin_id" {
 }
 
 variable "alb_domain_name" {
-  description = "The ARN of the Application Load Balancer."
+  description = "The dns name of the Application Load Balancer."
   type        = string
   default     = ""
 }
@@ -150,6 +150,11 @@ variable "csp_policy" {
   default     = "default-src 'self';"
 }
 
+variable "origin_request_policy_id" {
+  description = "Existing CloudFront Origin Request Policy ID"
+  type        = string
+  default     = null
+}
 
 variable "response_headers_policy_id" {
   description = "Existing CloudFront Response Headers Policy ID"
