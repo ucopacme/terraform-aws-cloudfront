@@ -168,3 +168,29 @@ variable "cloudfront_comment" {
   type        = string
   default     = "Managed by Terraform"
 }
+
+variable "additional_origins" {
+  description = "List of additional custom origins (e.g., API Gateway)"
+  type = list(object({
+    domain_name          = string
+    origin_id            = string
+    origin_path          = optional(string, "")
+    origin_read_timeout  = optional(number, 60)
+  }))
+  default = []
+}
+
+variable "ordered_cache_behaviors" {
+  description = "List of ordered cache behaviors for additional origins"
+  type = list(object({
+    path_pattern             = string
+    target_origin_id         = string
+    allowed_methods          = list(string)
+    cached_methods           = optional(list(string), ["GET", "HEAD"])
+    viewer_protocol_policy   = optional(string, "redirect-to-https")
+    cache_policy_type        = optional(string, "caching-disabled")
+    origin_request_policy_id = optional(string, null)
+    lambda_function_arns     = optional(list(string), [])
+  }))
+  default = []
+}
