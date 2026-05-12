@@ -194,3 +194,9 @@ variable "ordered_cache_behaviors" {
   }))
   default = []
 }
+
+variable "web_acl_id" {
+  description = "WAF Web ACL ARN to associate with the CloudFront distribution"
+  type        = string
+  default     = null
+}

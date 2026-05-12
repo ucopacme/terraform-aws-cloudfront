@@ -79,6 +79,7 @@ resource "aws_cloudfront_distribution" "s3" {
   default_root_object = var.default_root_object
   tags                = var.tags
   comment             = var.cloudfront_comment
+  web_acl_id          = var.web_acl_id
   origin {
     domain_name = local.bucket_domain_name
     origin_id   = "S3-${local.bucket_id}"
@@ -199,6 +200,7 @@ resource "aws_cloudfront_distribution" "alb" {
   enabled             = true
   default_root_object = var.default_root_object
   comment             = var.cloudfront_comment
+  web_acl_id          = var.web_acl_id
 
   origin {
     domain_name = var.alb_domain_name
