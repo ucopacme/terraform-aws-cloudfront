@@ -100,6 +100,14 @@ resource "aws_cloudfront_distribution" "s3" {
         origin_ssl_protocols   = ["TLSv1.2"]
         origin_read_timeout    = origin.value.origin_read_timeout
       }
+
+      dynamic "custom_header" {
+        for_each = var.custom_headers
+        content {
+          name  = custom_header.value.name
+          value = custom_header.value.value
+        }
+      }
     }
   }
 
@@ -199,6 +207,7 @@ resource "aws_cloudfront_distribution" "alb" {
   count               = var.origin_type != "s3" ? 1 : 0
   enabled             = true
   default_root_object = var.default_root_object
+  tags                = var.tags
   comment             = var.cloudfront_comment
   web_acl_id          = var.web_acl_id
 
@@ -216,25 +225,66 @@ resource "aws_cloudfront_distribution" "alb" {
       // in ucop cf+alb deploys recently 
       origin_ssl_protocols   = ["TLSv1.2"]
     }
+
+    dynamic "custom_header" {
+      for_each = var.custom_headers
+      content {
+        name  = custom_header.value.name
+        value = custom_header.value.value
+      }
+    }
+
   }
 
   price_class = var.price_class
 
   default_cache_behavior {
     target_origin_id       = var.alb_origin_id != "" ? var.alb_origin_id : var.alb_domain_name
-    viewer_protocol_policy = "redirect-to-https"
-    compress               = true
+    viewer_protocol_policy = var.alb_origin_protocol_policy != "" ? var.alb_origin_protocol_policy : "redirect-to-https"
+    compress               = var.compress
     cache_policy_id        = local.cache_policy_id
     allowed_methods        = var.allowed_methods
     cached_methods         = var.cached_methods
     origin_request_policy_id = var.origin_request_policy_id
     response_headers_policy_id = var.response_headers_policy_id
     # Conditionally add the function_association if function_arn is provided
+    # Dynamic block for CloudFront Functions
     dynamic "function_association" {
-      for_each = var.function_arn != null && var.function_arn != "" ? [var.function_arn] : []
+      for_each = var.cloudfront_function_arns != null && length(var.cloudfront_function_arns) > 0 ? var.cloudfront_function_arns : []
       content {
         event_type   = "viewer-request"
         function_arn = function_association.value
+      }
+    }
+
+    # Dynamic block for Lambda@Edge Functions
+    dynamic "lambda_function_association" {
+      for_each = var.lambda_function_arns != null && length(var.lambda_function_arns) > 0 ? var.lambda_function_arns : []
+      content {
+        event_type = "viewer-request"
+        lambda_arn = lambda_function_association.value
+        include_body = lambda_include_body
+      }
+    }
+  }
+
+  dynamic "ordered_cache_behavior" {
+    for_each = var.ordered_cache_behaviors
+    content {
+      path_pattern           = ordered_cache_behavior.value.path_pattern
+      target_origin_id       = ordered_cache_behavior.value.target_origin_id
+      allowed_methods        = ordered_cache_behavior.value.allowed_methods
+      cached_methods         = ordered_cache_behavior.value.cached_methods
+      viewer_protocol_policy = ordered_cache_behavior.value.viewer_protocol_policy
+      cache_policy_id        = ordered_cache_behavior.value.cache_policy_type == "caching-disabled" ? data.aws_cloudfront_cache_policy.caching_disabled.id : data.aws_cloudfront_cache_policy.cache_optimized.id
+      origin_request_policy_id = ordered_cache_behavior.value.origin_request_policy_id
+
+      dynamic "lambda_function_association" {
+        for_each = ordered_cache_behavior.value.lambda_function_arns
+        content {
+          event_type = "viewer-request"
+          lambda_arn = lambda_function_association.value
+        }
       }
     }
   }
@@ -249,8 +299,19 @@ resource "aws_cloudfront_distribution" "alb" {
   }
 
   restrictions {
-    geo_restriction {
-      restriction_type = "none"
+    dynamic "geo_restriction" {
+      for_each = length(var.geo_restrictions_whitelist) > 0 ? [var.geo_restrictions_whitelist[0]] : []
+      content {
+        restriction_type = "whitelist"
+        locations        = var.geo_restrictions_whitelist
+      }
+    }
+
+    dynamic "geo_restriction" {
+      for_each = length(var.geo_restrictions_whitelist) == 0 ? ["none"] : []
+      content {
+        restriction_type = "none"
+      }
     }
   }
 

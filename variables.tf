@@ -191,6 +191,7 @@ variable "ordered_cache_behaviors" {
     cache_policy_type        = optional(string, "caching-disabled")
     origin_request_policy_id = optional(string, null)
     lambda_function_arns     = optional(list(string), [])
+    lambda_include_body      = optional(bool,"false")
   }))
   default = []
 }
@@ -199,4 +200,13 @@ variable "web_acl_id" {
   description = "WAF Web ACL ARN to associate with the CloudFront distribution"
   type        = string
   default     = null
+}
+
+variable "custom_headers" {
+  description = "List of custom headers"
+  type = list(object({
+    name  = string
+    value = string
+  }))
+  default = []
 }
