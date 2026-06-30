@@ -107,7 +107,6 @@ module "cloudfront" {
    ```
 3. **ALB ARN**: You must pass the full ARN of the ALB/NLB via `vpc_origin_arn`
 4. **Origin Domain Name**: The `origin_domain_name` must resolve to the ALB and match the ALB's TLS certificate (CloudFront uses this as the SNI during the TLS handshake). Use a Route 53 alias that the certificate covers rather than the raw ALB DNS name.
-5. **TLS compatibility**: The VPC origin only supports up to TLS 1.2 (`origin_ssl_protocols` valid values: `SSLv3`, `TLSv1`, `TLSv1.1`, `TLSv1.2`). Ensure the ALB's security policy accepts TLS 1.2 connections (e.g., `ELBSecurityPolicy-TLS13-1-2-2021-06`).
 
 ## Requirements
 
