@@ -63,14 +63,14 @@ variable "cached_methods" {
   default     = ["GET", "HEAD"]
 }
 
-variable "alb_origin_id" {
-  description = "The origin ID for the ALB"
+variable "origin_id" {
+  description = "The origin ID string used within the CloudFront distribution (for alb and vpc origin types)"
   type        = string
   default     = ""
 }
 
-variable "alb_domain_name" {
-  description = "The dns name of the Application Load Balancer."
+variable "origin_domain_name" {
+  description = "The domain name of the origin (ALB/NLB DNS name, used for alb and vpc origin types)"
   type        = string
   default     = ""
 }
@@ -86,9 +86,14 @@ variable "alb_origin_protocol_policy" {
 }
 
 variable "origin_type" {
-  description = "The type of the origin (s3 or alb)"
+  description = "The type of the origin (s3, alb, or vpc)"
   type        = string
   default     = "s3"
+
+  validation {
+    condition     = contains(["s3", "alb", "vpc"], var.origin_type)
+    error_message = "origin_type must be one of: s3, alb, vpc"
+  }
 }
 
 variable "price_class" {
@@ -209,4 +214,40 @@ variable "custom_headers" {
     value = string
   }))
   default = []
+}
+
+variable "vpc_origin_name" {
+  description = "Name for the CloudFront VPC origin endpoint configuration (required when origin_type is vpc)"
+  type        = string
+  default     = ""
+}
+
+variable "vpc_origin_arn" {
+  description = "ARN of the ALB/NLB to use as a VPC origin (required when origin_type is vpc)"
+  type        = string
+  default     = ""
+}
+
+variable "vpc_origin_http_port" {
+  description = "HTTP port for the VPC origin"
+  type        = number
+  default     = 80
+}
+
+variable "vpc_origin_https_port" {
+  description = "HTTPS port for the VPC origin"
+  type        = number
+  default     = 443
+}
+
+variable "vpc_origin_protocol_policy" {
+  description = "Origin protocol policy for VPC origin (http-only, https-only, match-viewer)"
+  type        = string
+  default     = "https-only"
+}
+
+variable "vpc_origin_ssl_protocols" {
+  description = "SSL/TLS protocols for VPC origin"
+  type        = list(string)
+  default     = ["TLSv1.2"]
 }

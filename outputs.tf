@@ -18,17 +18,29 @@ output "cloudfront_s3_domain_name" {
 
 # Output for CloudFront distribution (ALB)
 output "cloudfront_alb_domain_name" {
-  value       = var.origin_type != "s3" && length(aws_cloudfront_distribution.alb) > 0 ? aws_cloudfront_distribution.alb[0].domain_name : null
-  description = "The domain name of the CloudFront distribution for ALB"
+  value = (
+    var.origin_type == "vpc" && length(aws_cloudfront_distribution.vpc_origin) > 0
+    ? aws_cloudfront_distribution.vpc_origin[0].domain_name
+    : (var.origin_type == "alb" && length(aws_cloudfront_distribution.alb) > 0
+      ? aws_cloudfront_distribution.alb[0].domain_name
+      : null)
+  )
+  description = "The domain name of the CloudFront distribution for ALB or VPC origin"
 }
 
 # Output for CloudFront distribution ID
 output "cloudfront_distribution_zone_id" {
-  value = var.origin_type == "s3" ? aws_cloudfront_distribution.s3[0].id : aws_cloudfront_distribution.alb[0].id
+  value = (
+    var.origin_type == "vpc"
+    ? aws_cloudfront_distribution.vpc_origin[0].id
+    : (var.origin_type == "s3"
+      ? aws_cloudfront_distribution.s3[0].id
+      : aws_cloudfront_distribution.alb[0].id)
+  )
   description = "The CloudFront distribution ID"
 }
 
-#output "cloudfront_distribution_zone_id" {
- # value = aws_cloudfront_distribution.s3[0].id
-  #description = "The CloudFront distribution ID"
-#}
+output "vpc_origin_id" {
+  value       = var.origin_type == "vpc" ? aws_cloudfront_vpc_origin.this[0].id : null
+  description = "The CloudFront VPC origin ID"
+}
