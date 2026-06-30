@@ -40,8 +40,8 @@ module "cloudfront" {
 module "cloudfront" {
   source                     = "git::https://github.com/ucopacme/terraform-aws-cloudfront.git?ref=v0.0.12"
   origin_type                = "alb"
-  alb_origin_id              = "my-alb-origin"
-  alb_domain_name            = "my-alb-123456.us-west-2.elb.amazonaws.com"
+  origin_id                  = "my-alb-origin"
+  origin_domain_name         = "my-alb-123456.us-west-2.elb.amazonaws.com"
   alb_origin_protocol_policy = "https-only"
   cache_policy_type          = "caching-disabled"
   tags                       = { Environment = "production" }
@@ -58,8 +58,8 @@ module "cloudfront" {
   origin_type         = "vpc"
   vpc_origin_name     = "my-private-alb-origin"
   vpc_origin_arn      = "arn:aws:elasticloadbalancing:us-west-2:123456789012:loadbalancer/app/my-private-alb/abc123"
-  alb_origin_id       = "my-alb-origin"
-  alb_domain_name     = "internal-my-alb-123456.us-west-2.elb.amazonaws.com"
+  origin_id           = "my-alb-origin"
+  origin_domain_name  = "myapp.example.com"  # Must match the ALB's TLS certificate for SNI
   cache_policy_type   = "caching-disabled"
   allowed_methods     = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
 
@@ -89,24 +89,25 @@ module "cloudfront" {
 #### VPC Origin Prerequisites
 
 1. **AWS Provider version**: >= 5.82 (the `aws_cloudfront_vpc_origin` resource was introduced in this version)
-2. **ALB Security Group**: Must allow inbound traffic from CloudFront origin-facing IPs:
+2. **ALB Security Group**: Must allow inbound traffic from the CloudFront-managed ENI security group. When a VPC origin is created, AWS places ENIs in the ALB's subnets with an AWS-managed security group. Allow inbound 443 from that security group:
    ```hcl
-   data "aws_ec2_managed_prefix_list" "cloudfront" {
-     name = "com.amazonaws.global.cloudfront.origin-facing"
-   }
+   # Find the CloudFront ENI security group after VPC origin creation:
+   # aws ec2 describe-network-interfaces --filters "Name=description,Values=*CloudFront*" \
+   #   --query 'NetworkInterfaces[*].Groups[*].GroupId' --output text --region <your-region>
 
-   resource "aws_security_group_rule" "allow_cloudfront" {
-     type              = "ingress"
-     from_port         = 443
-     to_port           = 443
-     protocol          = "tcp"
-     security_group_id = "<your-alb-security-group-id>"
-     prefix_list_ids   = [data.aws_ec2_managed_prefix_list.cloudfront.id]
-     description       = "Allow HTTPS from CloudFront"
+   resource "aws_security_group_rule" "allow_cloudfront_eni" {
+     type                     = "ingress"
+     from_port                = 443
+     to_port                  = 443
+     protocol                 = "tcp"
+     security_group_id        = "<your-alb-security-group-id>"
+     source_security_group_id = "<cloudfront-eni-security-group-id>"
+     description              = "Allow HTTPS from CloudFront VPC Origin ENIs"
    }
    ```
 3. **ALB ARN**: You must pass the full ARN of the ALB/NLB via `vpc_origin_arn`
-4. **ALB Domain Name**: Still required via `alb_domain_name` (used by CloudFront schema)
+4. **Origin Domain Name**: The `origin_domain_name` must resolve to the ALB and match the ALB's TLS certificate (CloudFront uses this as the SNI during the TLS handshake). Use a Route 53 alias that the certificate covers rather than the raw ALB DNS name.
+5. **TLS compatibility**: The VPC origin only supports up to TLS 1.2 (`origin_ssl_protocols` valid values: `SSLv3`, `TLSv1`, `TLSv1.1`, `TLSv1.2`). Ensure the ALB's security policy accepts TLS 1.2 connections (e.g., `ELBSecurityPolicy-TLS13-1-2-2021-06`).
 
 ## Requirements
 
@@ -146,9 +147,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_acm_certificate_arn"></a> [acm\_certificate\_arn](#input\_acm\_certificate\_arn) | The ARN of the custom SSL/TLS certificate for CloudFront | `string` | `""` | no |
 | <a name="input_additional_origins"></a> [additional\_origins](#input\_additional\_origins) | List of additional custom origins (e.g., API Gateway) | `list(object)` | `[]` | no |
-| <a name="input_alb_domain_name"></a> [alb\_domain\_name](#input\_alb\_domain\_name) | The DNS name of the Application Load Balancer | `string` | `""` | no |
-| <a name="input_alb_origin_id"></a> [alb\_origin\_id](#input\_alb\_origin\_id) | The origin ID for the ALB | `string` | `""` | no |
-| <a name="input_alb_origin_protocol_policy"></a> [alb\_origin\_protocol\_policy](#input\_alb\_origin\_protocol\_policy) | The origin protocol policy for the ALB (http-only, https-only, match-viewer) | `string` | `"http-only"` | no |
+| <a name="input_alb_origin_protocol_policy"></a> [alb\_origin\_protocol\_policy](#input\_alb\_origin\_protocol\_policy) | The origin protocol policy for the ALB (http-only, https-only, match-viewer). Used with origin\_type = "alb" only. | `string` | `"http-only"` | no |
 | <a name="input_allowed_methods"></a> [allowed\_methods](#input\_allowed\_methods) | Allowed HTTP methods for CloudFront | `list(string)` | `["GET", "HEAD"]` | no |
 | <a name="input_alternate_domain_names"></a> [alternate\_domain\_names](#input\_alternate\_domain\_names) | List of alternate domain names (CNAMEs) | `list(string)` | `[]` | no |
 | <a name="input_cache_policy_type"></a> [cache\_policy\_type](#input\_cache\_policy\_type) | Cache policy type: "cache-optimized" or "caching-disabled" | `string` | `"cache-optimized"` | no |
@@ -166,6 +165,8 @@ No modules.
 | <a name="input_lambda_function_arns"></a> [lambda\_function\_arns](#input\_lambda\_function\_arns) | List of Lambda@Edge ARNs to associate with the default cache behavior | `list(string)` | `[]` | no |
 | <a name="input_minimum_protocol_version"></a> [minimum\_protocol\_version](#input\_minimum\_protocol\_version) | TLS minimum protocol version for CloudFront | `string` | `"TLSv1.2_2021"` | no |
 | <a name="input_ordered_cache_behaviors"></a> [ordered\_cache\_behaviors](#input\_ordered\_cache\_behaviors) | List of ordered cache behaviors for path-based routing | `list(object)` | `[]` | no |
+| <a name="input_origin_domain_name"></a> [origin\_domain\_name](#input\_origin\_domain\_name) | The domain name of the origin (ALB/NLB DNS name or Route 53 alias). Used with origin\_type = "alb" or "vpc". For VPC origins, must match the ALB's TLS certificate. | `string` | `""` | no |
+| <a name="input_origin_id"></a> [origin\_id](#input\_origin\_id) | The origin ID string used within the CloudFront distribution. Used with origin\_type = "alb" or "vpc". | `string` | `""` | no |
 | <a name="input_origin_request_policy_id"></a> [origin\_request\_policy\_id](#input\_origin\_request\_policy\_id) | Existing CloudFront Origin Request Policy ID for the default cache behavior | `string` | `null` | no |
 | <a name="input_origin_type"></a> [origin\_type](#input\_origin\_type) | The type of the origin: `s3`, `alb`, or `vpc` | `string` | `"s3"` | no |
 | <a name="input_price_class"></a> [price\_class](#input\_price\_class) | Price class for this distribution | `string` | `"PriceClass_100"` | no |
@@ -177,7 +178,7 @@ No modules.
 | <a name="input_vpc_origin_https_port"></a> [vpc\_origin\_https\_port](#input\_vpc\_origin\_https\_port) | HTTPS port for the VPC origin | `number` | `443` | no |
 | <a name="input_vpc_origin_name"></a> [vpc\_origin\_name](#input\_vpc\_origin\_name) | Name for the CloudFront VPC origin endpoint configuration | `string` | `""` | no |
 | <a name="input_vpc_origin_protocol_policy"></a> [vpc\_origin\_protocol\_policy](#input\_vpc\_origin\_protocol\_policy) | Origin protocol policy for VPC origin (http-only, https-only, match-viewer) | `string` | `"https-only"` | no |
-| <a name="input_vpc_origin_ssl_protocols"></a> [vpc\_origin\_ssl\_protocols](#input\_vpc\_origin\_ssl\_protocols) | SSL/TLS protocols for VPC origin | `list(string)` | `["TLSv1.2"]` | no |
+| <a name="input_vpc_origin_ssl_protocols"></a> [vpc\_origin\_ssl\_protocols](#input\_vpc\_origin\_ssl\_protocols) | SSL/TLS protocols for VPC origin (valid values: SSLv3, TLSv1, TLSv1.1, TLSv1.2) | `list(string)` | `["TLSv1.2"]` | no |
 | <a name="input_web_acl_id"></a> [web\_acl\_id](#input\_web\_acl\_id) | WAF Web ACL ARN to associate with the CloudFront distribution | `string` | `null` | no |
 
 ## Outputs
