@@ -62,6 +62,9 @@ resource "aws_s3_bucket_policy" "this" {
 # Fetch the current AWS account ID
 data "aws_caller_identity" "current" {}
 
+# Fetch the current AWS region
+data "aws_region" "current" {}
+
 # Create a CloudFront Origin Access Control (OAC) for the S3 bucket if the origin_type is "s3"
 resource "aws_cloudfront_origin_access_control" "this" {
   count                            = var.origin_type == "s3" ? 1 : 0
@@ -70,6 +73,16 @@ resource "aws_cloudfront_origin_access_control" "this" {
   origin_access_control_origin_type = "s3"
   signing_behavior                 = "always"
   signing_protocol                 = "sigv4"
+}
+
+# Create OAC for each additional S3 origin
+resource "aws_cloudfront_origin_access_control" "additional_s3" {
+  for_each                          = { for idx, origin in var.s3_additional_origins : origin.origin_id => origin }
+  name                              = "${each.value.bucket_name}-oac"
+  description                       = "OAC for additional S3 bucket ${each.value.bucket_name}"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }
 
 # Create a CloudFront distribution for the S3 origin if the origin_type is "s3"
@@ -108,6 +121,16 @@ resource "aws_cloudfront_distribution" "s3" {
           value = custom_header.value.value
         }
       }
+    }
+  }
+
+  dynamic "origin" {
+    for_each = { for idx, o in var.s3_additional_origins : o.origin_id => o }
+    content {
+      domain_name              = "${origin.value.bucket_name}.s3.${data.aws_region.current.name}.amazonaws.com"
+      origin_id                = origin.value.origin_id
+      origin_path              = origin.value.origin_path
+      origin_access_control_id = aws_cloudfront_origin_access_control.additional_s3[origin.value.origin_id].id
     }
   }
 
@@ -153,6 +176,14 @@ resource "aws_cloudfront_distribution" "s3" {
       viewer_protocol_policy = ordered_cache_behavior.value.viewer_protocol_policy
       cache_policy_id        = ordered_cache_behavior.value.cache_policy_type == "caching-disabled" ? data.aws_cloudfront_cache_policy.caching_disabled.id : data.aws_cloudfront_cache_policy.cache_optimized.id
       origin_request_policy_id = ordered_cache_behavior.value.origin_request_policy_id
+
+      dynamic "function_association" {
+        for_each = ordered_cache_behavior.value.cloudfront_function_arns
+        content {
+          event_type   = "viewer-request"
+          function_arn = function_association.value
+        }
+      }
 
       dynamic "lambda_function_association" {
         for_each = ordered_cache_behavior.value.lambda_function_arns

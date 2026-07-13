@@ -195,6 +195,7 @@ variable "ordered_cache_behaviors" {
     viewer_protocol_policy   = optional(string, "redirect-to-https")
     cache_policy_type        = optional(string, "caching-disabled")
     origin_request_policy_id = optional(string, null)
+    cloudfront_function_arns = optional(list(string), [])
     lambda_function_arns     = optional(list(string), [])
     lambda_include_body      = optional(bool,"false")
   }))
@@ -250,4 +251,14 @@ variable "vpc_origin_ssl_protocols" {
   description = "SSL/TLS protocols for VPC origin"
   type        = list(string)
   default     = ["TLSv1.2"]
+}
+
+variable "s3_additional_origins" {
+  description = "List of additional S3 origins with OAC (private buckets)"
+  type = list(object({
+    bucket_name = string
+    origin_id   = string
+    origin_path = optional(string, "")
+  }))
+  default = []
 }

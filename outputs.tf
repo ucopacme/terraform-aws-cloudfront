@@ -44,3 +44,8 @@ output "vpc_origin_id" {
   value       = var.origin_type == "vpc" ? aws_cloudfront_vpc_origin.this[0].id : null
   description = "The CloudFront VPC origin ID"
 }
+
+output "cloudfront_s3_arn" {
+  description = "The ARN of the CloudFront distribution (S3 origin type)"
+  value       = var.origin_type == "s3" && length(aws_cloudfront_distribution.s3) > 0 ? aws_cloudfront_distribution.s3[0].arn : null
+}
