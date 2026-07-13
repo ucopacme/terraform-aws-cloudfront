@@ -62,9 +62,6 @@ resource "aws_s3_bucket_policy" "this" {
 # Fetch the current AWS account ID
 data "aws_caller_identity" "current" {}
 
-# Fetch the current AWS region
-data "aws_region" "current" {}
-
 # Create a CloudFront Origin Access Control (OAC) for the S3 bucket if the origin_type is "s3"
 resource "aws_cloudfront_origin_access_control" "this" {
   count                            = var.origin_type == "s3" ? 1 : 0
@@ -127,7 +124,7 @@ resource "aws_cloudfront_distribution" "s3" {
   dynamic "origin" {
     for_each = { for idx, o in var.s3_additional_origins : o.origin_id => o }
     content {
-      domain_name              = "${origin.value.bucket_name}.s3.${data.aws_region.current.name}.amazonaws.com"
+      domain_name              = "${origin.value.bucket_name}.s3.amazonaws.com"
       origin_id                = origin.value.origin_id
       origin_path              = origin.value.origin_path
       origin_access_control_id = aws_cloudfront_origin_access_control.additional_s3[origin.value.origin_id].id
