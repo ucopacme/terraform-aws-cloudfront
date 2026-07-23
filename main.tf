@@ -6,6 +6,22 @@ resource "aws_s3_bucket" "this" {
   tags   = var.tags
 }
 
+# Server-side encryption configuration for the S3 origin bucket
+resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
+  count  = (var.origin_type == "s3" && var.create_s3_bucket) ? 1 : 0
+  bucket = aws_s3_bucket.this[0].id
+
+  rule {
+    bucket_key_enabled       = var.s3_bucket_key_enabled
+    blocked_encryption_types = var.s3_blocked_encryption_types
+
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = var.s3_kms_master_key_arn
+      sse_algorithm     = var.s3_sse_algorithm
+    }
+  }
+}
+
 # Fetch existing bucket details if we aren't creating one
 # main.tf inside the module
 data "aws_s3_bucket" "existing" {

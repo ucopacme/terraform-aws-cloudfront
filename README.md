@@ -26,11 +26,14 @@ Additional capabilities across all origin types:
 
 ```hcl
 module "cloudfront" {
-  source          = "git::https://github.com/ucopacme/terraform-aws-cloudfront.git?ref=v0.0.12"
-  origin_type     = "s3"
-  s3_bucket_name  = "my-website-bucket"
-  cache_policy_type = "cache-optimized"
-  tags            = { Environment = "production" }
+  source                      = "git::https://github.com/ucopacme/terraform-aws-cloudfront.git?ref=v0.0.13"
+  origin_type                 = "s3"
+  s3_bucket_name              = "my-website-bucket"
+  s3_sse_algorithm            = "AES256"
+  s3_bucket_key_enabled       = false
+  s3_blocked_encryption_types = ["SSE-C"]
+  cache_policy_type           = "cache-optimized"
+  tags                        = { Environment = "production" }
 }
 ```
 
@@ -38,7 +41,7 @@ module "cloudfront" {
 
 ```hcl
 module "cloudfront" {
-  source                     = "git::https://github.com/ucopacme/terraform-aws-cloudfront.git?ref=v0.0.12"
+  source                     = "git::https://github.com/ucopacme/terraform-aws-cloudfront.git?ref=v0.0.13"
   origin_type                = "alb"
   origin_id                  = "my-alb-origin"
   origin_domain_name         = "my-alb-123456.us-west-2.elb.amazonaws.com"
@@ -54,7 +57,7 @@ Use this when your ALB/NLB is in a private subnet and not internet-facing. Cloud
 
 ```hcl
 module "cloudfront" {
-  source              = "git::https://github.com/ucopacme/terraform-aws-cloudfront.git?ref=v0.0.12"
+  source              = "git::https://github.com/ucopacme/terraform-aws-cloudfront.git?ref=v0.0.13"
   origin_type         = "vpc"
   vpc_origin_name     = "my-private-alb-origin"
   vpc_origin_arn      = "arn:aws:elasticloadbalancing:us-west-2:123456789012:loadbalancer/app/my-private-alb/abc123"
@@ -134,6 +137,7 @@ No modules.
 | [aws_cloudfront_origin_access_control.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_origin_access_control) | resource |
 | [aws_cloudfront_vpc_origin.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_vpc_origin) | resource |
 | [aws_s3_bucket.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
+| [aws_s3_bucket_server_side_encryption_configuration.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
 | [aws_s3_bucket_policy.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_cloudfront_cache_policy.cache_optimized](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/cloudfront_cache_policy) | data source |
@@ -171,6 +175,11 @@ No modules.
 | <a name="input_price_class"></a> [price\_class](#input\_price\_class) | Price class for this distribution | `string` | `"PriceClass_100"` | no |
 | <a name="input_response_headers_policy_id"></a> [response\_headers\_policy\_id](#input\_response\_headers\_policy\_id) | Existing CloudFront Response Headers Policy ID | `string` | `null` | no |
 | <a name="input_s3_bucket_name"></a> [s3\_bucket\_name](#input\_s3\_bucket\_name) | The name of the S3 bucket (optional if using ALB as origin) | `string` | `""` | no |
+| <a name="input_s3_sse_algorithm"></a> [s3\_sse\_algorithm](#input\_s3\_sse\_algorithm) | The server-side encryption algorithm to use for the S3 origin bucket. Valid values are `AES256` and `aws:kms` | `string` | `"AES256"` | no |
+| <a name="input_s3_kms_master_key_arn"></a> [s3\_kms\_master\_key\_arn](#input\_s3\_kms\_master\_key\_arn) | The AWS KMS master key ARN used for SSE-KMS encryption on the S3 origin bucket | `string` | `""` | no |
+| <a name="input_s3_bucket_key_enabled"></a> [s3\_bucket\_key\_enabled](#input\_s3\_bucket\_key\_enabled) | Whether to use an S3 Bucket Key for SSE-KMS on the S3 origin bucket | `bool` | `false` | no |
+| <a name="input_s3_blocked_encryption_types"></a> [s3\_blocked\_encryption\_types](#input\_s3\_blocked\_encryption\_types) | List of encryption types to block on the S3 origin bucket. AWS defaults to blocking SSE-C. | `list(string)` | `["SSE-C"]` | no |
+| <a name="input_s3_additional_origins"></a> [s3\_additional\_origins](#input\_s3\_additional\_origins) | List of additional S3 origins with OAC (private buckets) | `list(object)` | `[]` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to resources | `map(string)` | `{}` | no |
 | <a name="input_vpc_origin_arn"></a> [vpc\_origin\_arn](#input\_vpc\_origin\_arn) | ARN of the ALB/NLB to use as a VPC origin (required when origin\_type is vpc) | `string` | `""` | no |
 | <a name="input_vpc_origin_http_port"></a> [vpc\_origin\_http\_port](#input\_vpc\_origin\_http\_port) | HTTP port for the VPC origin | `number` | `80` | no |

@@ -262,3 +262,27 @@ variable "s3_additional_origins" {
   }))
   default = []
 }
+
+variable "s3_sse_algorithm" {
+  type        = string
+  default     = "AES256"
+  description = "The server-side encryption algorithm to use for the S3 origin bucket. Valid values are `AES256` and `aws:kms`"
+}
+
+variable "s3_kms_master_key_arn" {
+  type        = string
+  default     = ""
+  description = "The AWS KMS master key ARN used for SSE-KMS encryption on the S3 origin bucket"
+}
+
+variable "s3_bucket_key_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to use an S3 Bucket Key for SSE-KMS on the S3 origin bucket"
+}
+
+variable "s3_blocked_encryption_types" {
+  type        = list(string)
+  default     = ["SSE-C"]
+  description = "List of encryption types to block on the S3 origin bucket. AWS defaults to blocking SSE-C."
+}
