@@ -158,7 +158,7 @@ resource "aws_cloudfront_distribution" "s3" {
     cached_methods         = var.cached_methods
     response_headers_policy_id = var.response_headers_policy_id
 
-    # Conditionally add the function_association if function_arn is provided
+    # Conditionally add the function_association if cloudfront_function_arns is provided
     # Dynamic block for CloudFront Functions
   dynamic "function_association" {
     for_each = var.cloudfront_function_arns != null && length(var.cloudfront_function_arns) > 0 ? var.cloudfront_function_arns : []
@@ -291,7 +291,7 @@ resource "aws_cloudfront_distribution" "alb" {
     cached_methods         = var.cached_methods
     origin_request_policy_id = var.origin_request_policy_id
     response_headers_policy_id = var.response_headers_policy_id
-    # Conditionally add the function_association if function_arn is provided
+    # Conditionally add the function_association if cloudfront_function_arns is provided
     # Dynamic block for CloudFront Functions
     dynamic "function_association" {
       for_each = var.cloudfront_function_arns != null && length(var.cloudfront_function_arns) > 0 ? var.cloudfront_function_arns : []
