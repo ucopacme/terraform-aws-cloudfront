@@ -4,12 +4,6 @@ variable "s3_bucket_name" {
   default     = ""  # Default to empty if not provided
 }
 
-variable "function_arn" {
-  description = "function_arn"
-  type        = string
-  default     = null  # Default to empty if not provided
-}
-
 variable "cloudfront_function_arns" {
   description = "List of CloudFront Function ARNs to associate"
   type        = list(string)
