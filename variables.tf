@@ -286,3 +286,9 @@ variable "s3_blocked_encryption_types" {
   default     = ["SSE-C"]
   description = "List of encryption types to block on the S3 origin bucket. AWS defaults to blocking SSE-C."
 }
+
+variable "default_cache_behavior_viewer_protocol_policy" {
+  type        = string
+  default     = null
+  description = "Set specific default_cache_behavior viewer_protocol_policy"
+}

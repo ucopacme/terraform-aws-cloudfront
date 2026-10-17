@@ -151,7 +151,7 @@ resource "aws_cloudfront_distribution" "s3" {
 
   default_cache_behavior {
     target_origin_id       = "S3-${local.bucket_id}"
-    viewer_protocol_policy = "redirect-to-https"
+    viewer_protocol_policy = var.default_cache_behavior_viewer_protocol_policy != null ? var.default_cache_behavior_viewer_protocol_policy : "redirect-to-https"
     compress               = var.compress
     cache_policy_id        = local.cache_policy_id
     allowed_methods        = var.allowed_methods
@@ -284,7 +284,7 @@ resource "aws_cloudfront_distribution" "alb" {
 
   default_cache_behavior {
     target_origin_id       = var.origin_id != "" ? var.origin_id : var.origin_domain_name
-    viewer_protocol_policy = var.alb_origin_protocol_policy != "" ? var.alb_origin_protocol_policy : "redirect-to-https"
+    viewer_protocol_policy = var.default_cache_behavior_viewer_protocol_policy != null ? var.default_cache_behavior_viewer_protocol_policy : (var.alb_origin_protocol_policy != "" ? var.alb_origin_protocol_policy : "redirect-to-https")
     compress               = var.compress
     cache_policy_id        = local.cache_policy_id
     allowed_methods        = var.allowed_methods
@@ -425,7 +425,7 @@ resource "aws_cloudfront_distribution" "vpc_origin" {
 
   default_cache_behavior {
     target_origin_id           = var.origin_id != "" ? var.origin_id : var.origin_domain_name
-    viewer_protocol_policy     = "https-only"
+    viewer_protocol_policy     = var.default_cache_behavior_viewer_protocol_policy != null ? var.default_cache_behavior_viewer_protocol_policy : "https-only"
     compress                   = var.compress
     cache_policy_id            = local.cache_policy_id
     allowed_methods            = var.allowed_methods
