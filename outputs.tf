@@ -23,7 +23,7 @@ output "cloudfront_alb_domain_name" {
     ? aws_cloudfront_distribution.vpc_origin[0].domain_name
     : (var.origin_type == "alb" && length(aws_cloudfront_distribution.alb) > 0
       ? aws_cloudfront_distribution.alb[0].domain_name
-      : null)
+    : null)
   )
   description = "The domain name of the CloudFront distribution for ALB or VPC origin"
 }
@@ -35,7 +35,7 @@ output "cloudfront_distribution_zone_id" {
     ? aws_cloudfront_distribution.vpc_origin[0].id
     : (var.origin_type == "s3"
       ? aws_cloudfront_distribution.s3[0].id
-      : aws_cloudfront_distribution.alb[0].id)
+    : aws_cloudfront_distribution.alb[0].id)
   )
   description = "The CloudFront distribution ID"
 }

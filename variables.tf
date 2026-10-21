@@ -1,7 +1,7 @@
 variable "s3_bucket_name" {
   description = "The name of the S3 bucket (optional if using ALB as origin)"
   type        = string
-  default     = ""  # Default to empty if not provided
+  default     = "" # Default to empty if not provided
 }
 
 variable "cloudfront_function_arns" {
@@ -69,14 +69,20 @@ variable "origin_domain_name" {
   default     = ""
 }
 
+variable "origin_response_completion_timeout" {
+  description = "Time (in seconds) that a request from CloudFront to the origin can stay open and wait for a response"
+  type        = number
+  default     = null
+}
+
 variable "alb_origin_protocol_policy" {
   description = "The origin protocol policy for the ALB"
   type        = string
   default     = "http-only"
-      // should be match viewer or https-only but was hardcoded to http-only, so in case 
-      // backwards compatibility is needed, to keep the setting as is for older deploys
-      // set default and this if not set to http-only, but have been setting https-only 
-      // in ucop cf+alb deploys recently 
+  // should be match viewer or https-only but was hardcoded to http-only, so in case
+  // backwards compatibility is needed, to keep the setting as is for older deploys
+  // set default and this if not set to http-only, but have been setting https-only
+  // in ucop cf+alb deploys recently
 }
 
 variable "origin_type" {
@@ -171,10 +177,10 @@ variable "cloudfront_comment" {
 variable "additional_origins" {
   description = "List of additional custom origins (e.g., API Gateway)"
   type = list(object({
-    domain_name          = string
-    origin_id            = string
-    origin_path          = optional(string, "")
-    origin_read_timeout  = optional(number, 60)
+    domain_name         = string
+    origin_id           = string
+    origin_path         = optional(string, "")
+    origin_read_timeout = optional(number, 60)
   }))
   default = []
 }
@@ -191,7 +197,7 @@ variable "ordered_cache_behaviors" {
     origin_request_policy_id = optional(string, null)
     cloudfront_function_arns = optional(list(string), [])
     lambda_function_arns     = optional(list(string), [])
-    lambda_include_body      = optional(bool,"false")
+    lambda_include_body      = optional(bool, "false")
   }))
   default = []
 }

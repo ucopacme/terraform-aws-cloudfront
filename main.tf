@@ -45,10 +45,10 @@ resource "aws_s3_bucket_policy" "this" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = { Service = "cloudfront.amazonaws.com" }
-        Action   = "s3:GetObject"
-        Resource = "arn:aws:s3:::${aws_s3_bucket.this[0].id}/*"
+        Action    = "s3:GetObject"
+        Resource  = "arn:aws:s3:::${aws_s3_bucket.this[0].id}/*"
         Condition = {
           StringEquals = {
             "AWS:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.s3[0].id}"
@@ -56,22 +56,22 @@ resource "aws_s3_bucket_policy" "this" {
         }
       },
       {
-            "Sid": "AllowSSLRequestsOnly",
-            "Effect": "Deny",
-            "Principal": "*",
-            "Action": "s3:*",
-            "Resource": [
-                "arn:aws:s3:::${aws_s3_bucket.this[0].id}/*",
-                "arn:aws:s3:::${aws_s3_bucket.this[0].id}"
-            ],
-            "Condition": {
-                "Bool": {
-                    "aws:SecureTransport": "false"
-                }
-            }
-        },
+        "Sid" : "AllowSSLRequestsOnly",
+        "Effect" : "Deny",
+        "Principal" : "*",
+        "Action" : "s3:*",
+        "Resource" : [
+          "arn:aws:s3:::${aws_s3_bucket.this[0].id}/*",
+          "arn:aws:s3:::${aws_s3_bucket.this[0].id}"
+        ],
+        "Condition" : {
+          "Bool" : {
+            "aws:SecureTransport" : "false"
+          }
+        }
+      },
     ],
-    
+
   })
 }
 
@@ -80,12 +80,12 @@ data "aws_caller_identity" "current" {}
 
 # Create a CloudFront Origin Access Control (OAC) for the S3 bucket if the origin_type is "s3"
 resource "aws_cloudfront_origin_access_control" "this" {
-  count                            = var.origin_type == "s3" ? 1 : 0
-  name                             = "${var.s3_bucket_name}${var.existing_s3_bucket_name}-oac"
-  description                      = "OAC for S3 bucket ${var.s3_bucket_name}"
+  count                             = var.origin_type == "s3" ? 1 : 0
+  name                              = "${var.s3_bucket_name}${var.existing_s3_bucket_name}-oac"
+  description                       = "OAC for S3 bucket ${var.s3_bucket_name}"
   origin_access_control_origin_type = "s3"
-  signing_behavior                 = "always"
-  signing_protocol                 = "sigv4"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }
 
 # Create OAC for each additional S3 origin
@@ -107,9 +107,10 @@ resource "aws_cloudfront_distribution" "s3" {
   comment             = var.cloudfront_comment
   web_acl_id          = var.web_acl_id
   origin {
-    domain_name = local.bucket_domain_name
-    origin_id   = "S3-${local.bucket_id}"
-    origin_access_control_id = aws_cloudfront_origin_access_control.this[0].id
+    domain_name                 = local.bucket_domain_name
+    origin_id                   = "S3-${local.bucket_id}"
+    origin_access_control_id    = aws_cloudfront_origin_access_control.this[0].id
+    response_completion_timeout = var.origin_response_completion_timeout
   }
 
   dynamic "origin" {
@@ -150,44 +151,44 @@ resource "aws_cloudfront_distribution" "s3" {
   price_class = var.price_class
 
   default_cache_behavior {
-    target_origin_id       = "S3-${local.bucket_id}"
-    viewer_protocol_policy = var.default_cache_behavior_viewer_protocol_policy != null ? var.default_cache_behavior_viewer_protocol_policy : "redirect-to-https"
-    compress               = var.compress
-    cache_policy_id        = local.cache_policy_id
-    allowed_methods        = var.allowed_methods
-    cached_methods         = var.cached_methods
+    target_origin_id           = "S3-${local.bucket_id}"
+    viewer_protocol_policy     = var.default_cache_behavior_viewer_protocol_policy != null ? var.default_cache_behavior_viewer_protocol_policy : "redirect-to-https"
+    compress                   = var.compress
+    cache_policy_id            = local.cache_policy_id
+    allowed_methods            = var.allowed_methods
+    cached_methods             = var.cached_methods
     response_headers_policy_id = var.response_headers_policy_id
 
     # Conditionally add the function_association if cloudfront_function_arns is provided
     # Dynamic block for CloudFront Functions
-  dynamic "function_association" {
-    for_each = var.cloudfront_function_arns != null && length(var.cloudfront_function_arns) > 0 ? var.cloudfront_function_arns : []
-    content {
-      event_type   = "viewer-request"
-      function_arn = function_association.value
+    dynamic "function_association" {
+      for_each = var.cloudfront_function_arns != null && length(var.cloudfront_function_arns) > 0 ? var.cloudfront_function_arns : []
+      content {
+        event_type   = "viewer-request"
+        function_arn = function_association.value
+      }
     }
-  }
 
-  # Dynamic block for Lambda@Edge Functions
-  dynamic "lambda_function_association" {
-    for_each = var.lambda_function_arns != null && length(var.lambda_function_arns) > 0 ? var.lambda_function_arns : []
-    content {
-      event_type = "viewer-request"
-      lambda_arn = lambda_function_association.value
+    # Dynamic block for Lambda@Edge Functions
+    dynamic "lambda_function_association" {
+      for_each = var.lambda_function_arns != null && length(var.lambda_function_arns) > 0 ? var.lambda_function_arns : []
+      content {
+        event_type = "viewer-request"
+        lambda_arn = lambda_function_association.value
+      }
     }
-  }
 
   }
 
   dynamic "ordered_cache_behavior" {
     for_each = var.ordered_cache_behaviors
     content {
-      path_pattern           = ordered_cache_behavior.value.path_pattern
-      target_origin_id       = ordered_cache_behavior.value.target_origin_id
-      allowed_methods        = ordered_cache_behavior.value.allowed_methods
-      cached_methods         = ordered_cache_behavior.value.cached_methods
-      viewer_protocol_policy = ordered_cache_behavior.value.viewer_protocol_policy
-      cache_policy_id        = ordered_cache_behavior.value.cache_policy_type == "caching-disabled" ? data.aws_cloudfront_cache_policy.caching_disabled.id : data.aws_cloudfront_cache_policy.cache_optimized.id
+      path_pattern             = ordered_cache_behavior.value.path_pattern
+      target_origin_id         = ordered_cache_behavior.value.target_origin_id
+      allowed_methods          = ordered_cache_behavior.value.allowed_methods
+      cached_methods           = ordered_cache_behavior.value.cached_methods
+      viewer_protocol_policy   = ordered_cache_behavior.value.viewer_protocol_policy
+      cache_policy_id          = ordered_cache_behavior.value.cache_policy_type == "caching-disabled" ? data.aws_cloudfront_cache_policy.caching_disabled.id : data.aws_cloudfront_cache_policy.cache_optimized.id
       origin_request_policy_id = ordered_cache_behavior.value.origin_request_policy_id
 
       dynamic "function_association" {
@@ -256,18 +257,19 @@ resource "aws_cloudfront_distribution" "alb" {
   web_acl_id          = var.web_acl_id
 
   origin {
-    domain_name = var.origin_domain_name
-    origin_id   = var.origin_id != "" ? var.origin_id : var.origin_domain_name
+    domain_name                 = var.origin_domain_name
+    origin_id                   = var.origin_id != "" ? var.origin_id : var.origin_domain_name
+    response_completion_timeout = var.origin_response_completion_timeout
 
     custom_origin_config {
       http_port              = 80
       https_port             = 443
       origin_protocol_policy = var.alb_origin_protocol_policy != "" ? var.alb_origin_protocol_policy : "http-only"
-      // should be match viewer or https-only but was hardcoded to http-only, so in case 
+      // should be match viewer or https-only but was hardcoded to http-only, so in case
       // backwards compatibility is needed, to keep the setting as is for older deploys
-      // set default and this if not set to http-only, but have been setting https-only 
-      // in ucop cf+alb deploys recently 
-      origin_ssl_protocols   = ["TLSv1.2"]
+      // set default and this if not set to http-only, but have been setting https-only
+      // in ucop cf+alb deploys recently
+      origin_ssl_protocols = ["TLSv1.2"]
     }
 
     dynamic "custom_header" {
@@ -283,13 +285,13 @@ resource "aws_cloudfront_distribution" "alb" {
   price_class = var.price_class
 
   default_cache_behavior {
-    target_origin_id       = var.origin_id != "" ? var.origin_id : var.origin_domain_name
-    viewer_protocol_policy = var.default_cache_behavior_viewer_protocol_policy != null ? var.default_cache_behavior_viewer_protocol_policy : (var.alb_origin_protocol_policy != "" ? var.alb_origin_protocol_policy : "redirect-to-https")
-    compress               = var.compress
-    cache_policy_id        = local.cache_policy_id
-    allowed_methods        = var.allowed_methods
-    cached_methods         = var.cached_methods
-    origin_request_policy_id = var.origin_request_policy_id
+    target_origin_id           = var.origin_id != "" ? var.origin_id : var.origin_domain_name
+    viewer_protocol_policy     = var.default_cache_behavior_viewer_protocol_policy != null ? var.default_cache_behavior_viewer_protocol_policy : (var.alb_origin_protocol_policy != "" ? var.alb_origin_protocol_policy : "redirect-to-https")
+    compress                   = var.compress
+    cache_policy_id            = local.cache_policy_id
+    allowed_methods            = var.allowed_methods
+    cached_methods             = var.cached_methods
+    origin_request_policy_id   = var.origin_request_policy_id
     response_headers_policy_id = var.response_headers_policy_id
     # Conditionally add the function_association if cloudfront_function_arns is provided
     # Dynamic block for CloudFront Functions
@@ -314,19 +316,19 @@ resource "aws_cloudfront_distribution" "alb" {
   dynamic "ordered_cache_behavior" {
     for_each = var.ordered_cache_behaviors
     content {
-      path_pattern           = ordered_cache_behavior.value.path_pattern
-      target_origin_id       = ordered_cache_behavior.value.target_origin_id
-      allowed_methods        = ordered_cache_behavior.value.allowed_methods
-      cached_methods         = ordered_cache_behavior.value.cached_methods
-      viewer_protocol_policy = ordered_cache_behavior.value.viewer_protocol_policy
-      cache_policy_id        = ordered_cache_behavior.value.cache_policy_type == "caching-disabled" ? data.aws_cloudfront_cache_policy.caching_disabled.id : data.aws_cloudfront_cache_policy.cache_optimized.id
+      path_pattern             = ordered_cache_behavior.value.path_pattern
+      target_origin_id         = ordered_cache_behavior.value.target_origin_id
+      allowed_methods          = ordered_cache_behavior.value.allowed_methods
+      cached_methods           = ordered_cache_behavior.value.cached_methods
+      viewer_protocol_policy   = ordered_cache_behavior.value.viewer_protocol_policy
+      cache_policy_id          = ordered_cache_behavior.value.cache_policy_type == "caching-disabled" ? data.aws_cloudfront_cache_policy.caching_disabled.id : data.aws_cloudfront_cache_policy.cache_optimized.id
       origin_request_policy_id = ordered_cache_behavior.value.origin_request_policy_id
 
       dynamic "lambda_function_association" {
         for_each = ordered_cache_behavior.value.lambda_function_arns
         content {
-          event_type = "viewer-request"
-          lambda_arn = lambda_function_association.value
+          event_type   = "viewer-request"
+          lambda_arn   = lambda_function_association.value
           include_body = ordered_cache_behavior.value.lambda_include_body
         }
       }
@@ -405,8 +407,9 @@ resource "aws_cloudfront_distribution" "vpc_origin" {
   web_acl_id          = var.web_acl_id
 
   origin {
-    domain_name = var.origin_domain_name # Required by schema, ignored at runtime for VPC origins
-    origin_id   = var.origin_id != "" ? var.origin_id : var.origin_domain_name
+    domain_name                 = var.origin_domain_name # Required by schema, ignored at runtime for VPC origins
+    origin_id                   = var.origin_id != "" ? var.origin_id : var.origin_domain_name
+    response_completion_timeout = var.origin_response_completion_timeout
 
     vpc_origin_config {
       vpc_origin_id = aws_cloudfront_vpc_origin.this[0].id
