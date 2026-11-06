@@ -19,7 +19,7 @@ variable "lambda_function_arns" {
 variable "minimum_protocol_version" {
   description = "TLS for CloudFront"
   type        = string
-  default     = "TLSv1.2_2021"
+  default     = "TLSv1.2_2025"
 }
 
 variable "acm_certificate_arn" {
