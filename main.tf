@@ -260,6 +260,7 @@ resource "aws_cloudfront_distribution" "alb" {
     domain_name                 = var.origin_domain_name
     origin_id                   = var.origin_id != "" ? var.origin_id : var.origin_domain_name
     response_completion_timeout = var.origin_response_completion_timeout
+    connection_attempts         = var.alb_origin_connection_attempts
 
     custom_origin_config {
       http_port              = 80
@@ -269,7 +270,9 @@ resource "aws_cloudfront_distribution" "alb" {
       // backwards compatibility is needed, to keep the setting as is for older deploys
       // set default and this if not set to http-only, but have been setting https-only
       // in ucop cf+alb deploys recently
-      origin_ssl_protocols = ["TLSv1.2"]
+      origin_ssl_protocols     = ["TLSv1.2"]
+      origin_read_timeout      = var.alb_origin_read_timeout
+      origin_keepalive_timeout = var.alb_origin_keepalive_timeout
     }
 
     dynamic "custom_header" {

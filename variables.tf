@@ -75,6 +75,39 @@ variable "origin_response_completion_timeout" {
   default     = null
 }
 
+variable "alb_origin_read_timeout" {
+  description = "Origin response (read) timeout in seconds for the ALB origin. Values above 60 require an account quota increase."
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = var.alb_origin_read_timeout >= 1
+    error_message = "alb_origin_read_timeout must be at least 1 second."
+  }
+}
+
+variable "alb_origin_keepalive_timeout" {
+  description = "Origin keep-alive timeout in seconds for the ALB origin. Values above 60 require an account quota increase."
+  type        = number
+  default     = 5
+
+  validation {
+    condition     = var.alb_origin_keepalive_timeout >= 1
+    error_message = "alb_origin_keepalive_timeout must be at least 1 second."
+  }
+}
+
+variable "alb_origin_connection_attempts" {
+  description = "Number of times CloudFront attempts to connect to, and get a response from, the ALB origin (1-3)"
+  type        = number
+  default     = 3
+
+  validation {
+    condition     = var.alb_origin_connection_attempts >= 1 && var.alb_origin_connection_attempts <= 3
+    error_message = "alb_origin_connection_attempts must be 1, 2, or 3."
+  }
+}
+
 variable "alb_origin_protocol_policy" {
   description = "The origin protocol policy for the ALB"
   type        = string
