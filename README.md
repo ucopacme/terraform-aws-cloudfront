@@ -150,6 +150,9 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_acm_certificate_arn"></a> [acm\_certificate\_arn](#input\_acm\_certificate\_arn) | The ARN of the custom SSL/TLS certificate for CloudFront | `string` | `""` | no |
 | <a name="input_additional_origins"></a> [additional\_origins](#input\_additional\_origins) | List of additional custom origins (e.g., API Gateway) | `list(object)` | `[]` | no |
+| <a name="input_alb_origin_connection_attempts"></a> [alb\_origin\_connection\_attempts](#input\_alb\_origin\_connection\_attempts) | Number of times CloudFront attempts to connect to, and get a response from, the ALB origin (1-3). For GET/HEAD, a response timeout also triggers a retry. Used with origin\_type = "alb" only. | `number` | `3` | no |
+| <a name="input_alb_origin_keepalive_timeout"></a> [alb\_origin\_keepalive\_timeout](#input\_alb\_origin\_keepalive\_timeout) | Origin keep-alive timeout in seconds. Values above 60 require an account quota increase. Used with origin\_type = "alb" only. | `number` | `5` | no |
+| <a name="input_alb_origin_read_timeout"></a> [alb\_origin\_read\_timeout](#input\_alb\_origin\_read\_timeout) | Origin response (read) timeout in seconds. Values above 60 require an account quota increase. Used with origin\_type = "alb" only. | `number` | `30` | no |
 | <a name="input_alb_origin_protocol_policy"></a> [alb\_origin\_protocol\_policy](#input\_alb\_origin\_protocol\_policy) | The origin protocol policy for the ALB (http-only, https-only, match-viewer). Used with origin\_type = "alb" only. | `string` | `"http-only"` | no |
 | <a name="input_allowed_methods"></a> [allowed\_methods](#input\_allowed\_methods) | Allowed HTTP methods for CloudFront | `list(string)` | `["GET", "HEAD"]` | no |
 | <a name="input_alternate_domain_names"></a> [alternate\_domain\_names](#input\_alternate\_domain\_names) | List of alternate domain names (CNAMEs) | `list(string)` | `[]` | no |
@@ -171,6 +174,7 @@ No modules.
 | <a name="input_origin_domain_name"></a> [origin\_domain\_name](#input\_origin\_domain\_name) | The domain name of the origin (ALB/NLB DNS name or Route 53 alias). Used with origin\_type = "alb" or "vpc". For VPC origins, must match the ALB's TLS certificate. | `string` | `""` | no |
 | <a name="input_origin_id"></a> [origin\_id](#input\_origin\_id) | The origin ID string used within the CloudFront distribution. Used with origin\_type = "alb" or "vpc". | `string` | `""` | no |
 | <a name="input_origin_request_policy_id"></a> [origin\_request\_policy\_id](#input\_origin\_request\_policy\_id) | Existing CloudFront Origin Request Policy ID for the default cache behavior | `string` | `null` | no |
+| <a name="input_origin_response_completion_timeout"></a> [origin\_response\_completion\_timeout](#input\_origin\_response\_completion\_timeout) | Maximum time in seconds CloudFront waits for the complete origin response, including retries. Must be greater than or equal to the read timeout when set. | `number` | `null` | no |
 | <a name="input_origin_type"></a> [origin\_type](#input\_origin\_type) | The type of the origin: `s3`, `alb`, or `vpc` | `string` | `"s3"` | no |
 | <a name="input_price_class"></a> [price\_class](#input\_price\_class) | Price class for this distribution | `string` | `"PriceClass_100"` | no |
 | <a name="input_response_headers_policy_id"></a> [response\_headers\_policy\_id](#input\_response\_headers\_policy\_id) | Existing CloudFront Response Headers Policy ID | `string` | `null` | no |
